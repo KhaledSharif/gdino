@@ -3,18 +3,22 @@ from PIL import Image
 from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
 import matplotlib.pyplot as plt
 
-# ============================================================================================================
+# =====================================================================================================================
+# Grounding DINO with Segment Anything || Reference:
+# github.com/NielsRogge/Transformers-Tutorials/blob/master/Grounding%20DINO/GroundingDINO_with_Segment_Anything.ipynb
+# =====================================================================================================================
+# 1. model id to run GDINO
+gdino_model_id = "IDEA-Research/grounding-dino-tiny"
 
-# 1. model id to run gdino
-model_id = "IDEA-Research/grounding-dino-tiny"
+# 2. model id to run SAM
+sam_model_id = "facebook/sam-vit-base"
 
-# 2. load image from file
+# 3. load image from file
 image = Image.open("./cyberpunk.jpg")
 
-# 3. period separated list of objects to find
+# 4. period separated list of objects to find
 text = "a car. a person. stair steps."
-
-# ============================================================================================================
+# =====================================================================================================================
 
 if not torch.cuda.is_available():
     print("CUDA is unavailable")
@@ -52,8 +56,8 @@ def preprocess_caption(caption: str) -> str:
 
 
 print("Loading processor and model...")
-processor = AutoProcessor.from_pretrained(model_id)
-model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(device)
+processor = AutoProcessor.from_pretrained(gdino_model_id)
+model = AutoModelForZeroShotObjectDetection.from_pretrained(gdino_model_id).to(device)
 print("Loaded processor and model!")
 
 print("processing image and text...")
