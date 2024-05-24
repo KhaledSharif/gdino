@@ -3,6 +3,19 @@ from PIL import Image
 from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
 import matplotlib.pyplot as plt
 
+# ============================================================================================================
+
+# 1. model id to run gdino
+model_id = "IDEA-Research/grounding-dino-tiny"
+
+# 2. load image from file
+image = Image.open("./cyberpunk.jpg")
+
+# 3. period separated list of objects to find
+text = "a car. a person. stair steps."
+
+# ============================================================================================================
+
 if not torch.cuda.is_available():
     print("CUDA is unavailable")
     exit()
@@ -31,17 +44,6 @@ def plot_results(pil_img, scores, labels, boxes):
     plt.show()
 
 
-model_id = "IDEA-Research/grounding-dino-tiny"
-print("Loading processor and model...")
-processor = AutoProcessor.from_pretrained(model_id)
-model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(device)
-print("Loaded processor and model!")
-
-image = Image.open("./cyberpunk.jpg")
-
-text = "a car. a person."
-
-
 def preprocess_caption(caption: str) -> str:
     r = caption.lower().strip()
     if r.endswith("."):
@@ -49,15 +51,20 @@ def preprocess_caption(caption: str) -> str:
     return r + "."
 
 
+print("Loading processor and model...")
+processor = AutoProcessor.from_pretrained(model_id)
+model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(device)
+print("Loaded processor and model!")
+
 print("processing image and text...")
 inputs = processor(images=image, text=text, return_tensors="pt")
 
 for i, j in inputs.items():
-    print("="*40)
+    print("=" * 40)
     print(i)
     print()
     print(j)
-    print("="*40)
+    print("=" * 40)
     print()
 
 inputs = inputs.to(device)
@@ -65,7 +72,8 @@ inputs = inputs.to(device)
 print("running through model...")
 with torch.no_grad():
     outputs = model(**inputs)
-print("got model output")
+
+print("got model output, drawing boxes...")
 
 # process model outputs
 width, height = image.size
@@ -77,12 +85,6 @@ processed_outputs = \
         box_threshold=0.4,
         text_threshold=0.3,
     )
-
-# for result in processed_outputs:
-#     for k, v in result.items():
-#         print(k)
-#         print("\t", v)
-#         print("\n")
 
 results = processed_outputs[0]
 
